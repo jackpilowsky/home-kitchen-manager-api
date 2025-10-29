@@ -6,3 +6,7 @@ python-jose[cryptography]
 passlib[bcrypt]
 python-dotenv
 email-validator
+alembic
+pytest
+pytest-asyncio
+httpx

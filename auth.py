@@ -4,6 +4,7 @@ from jose import JWTError, jwt
 from jose.exceptions import ExpiredSignatureError
 from passlib.context import CryptContext
 from datetime import datetime, timedelta
+from typing import Optional
 from sqlalchemy.orm import Session
 from config import SECRET_KEY, ALGORITHM
 from api.v1.models import User
@@ -22,7 +23,7 @@ def get_password_hash(password: str) -> str:
     """Hash a password"""
     return pwd_context.hash(password)
 
-def authenticate_user(username: str, password: str, db: Session) -> User | None:
+def authenticate_user(username: str, password: str, db: Session) -> Optional[User]:
     """Authenticate a user by username and password"""
     user = db.query(User).filter(User.username == username).first()
     if not user:
@@ -33,7 +34,7 @@ def authenticate_user(username: str, password: str, db: Session) -> User | None:
         return None
     return user
 
-def create_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     """Create a JWT access token"""
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))

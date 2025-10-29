@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, validator
-from typing import List, Optional
+from typing import List, Optional, Union
 from datetime import datetime
 import re
 

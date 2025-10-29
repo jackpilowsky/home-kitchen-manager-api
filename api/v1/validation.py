@@ -6,6 +6,7 @@ from jose.exceptions import ExpiredSignatureError
 from pydantic import ValidationError as PydanticValidationError
 from config import SECRET_KEY, ALGORITHM
 from . import models, schemas
+from .permissions import ensure_kitchen_access, ensure_shopping_list_access, ensure_shopping_list_item_access
 from .database import get_db
 
 # OAuth2 scheme for token extraction
@@ -118,12 +119,7 @@ def validate_authenticated_shopping_list_access(
     db: Session = Depends(get_db)
 ) -> models.ShoppingList:
     """Validate token and shopping list access with ownership validation"""
-    shopping_list = validate_shopping_list_id(shopping_list_id, db)
-    
-    # Validate kitchen ownership
-    validate_kitchen_ownership(shopping_list.kitchen_id, current_user.id, db)
-    
-    return shopping_list
+    return ensure_shopping_list_access(shopping_list_id, current_user, db)
 
 def validate_authenticated_shopping_list_item_access(
     item_id: int,
@@ -131,13 +127,7 @@ def validate_authenticated_shopping_list_item_access(
     db: Session = Depends(get_db)
 ) -> models.ShoppingListItem:
     """Validate token and shopping list item access with ownership validation"""
-    item = validate_shopping_list_item_id(item_id, db)
-    
-    # Validate kitchen ownership through shopping list
-    shopping_list = validate_shopping_list_id(item.shopping_list_id, db)
-    validate_kitchen_ownership(shopping_list.kitchen_id, current_user.id, db)
-    
-    return item
+    return ensure_shopping_list_item_access(item_id, current_user, db)
 
 def validate_authenticated_shopping_list_creation(
     shopping_list_data: schemas.ShoppingListCreate,
@@ -148,7 +138,7 @@ def validate_authenticated_shopping_list_creation(
     validated_data = validate_shopping_list_create_data(shopping_list_data)
     
     # Validate kitchen ownership
-    validate_kitchen_ownership(validated_data.kitchen_id, current_user.id, db)
+    ensure_kitchen_access(validated_data.kitchen_id, current_user, db)
     
     return validated_data
 
@@ -159,15 +149,12 @@ def validate_authenticated_shopping_list_update(
     db: Session = Depends(get_db)
 ) -> tuple[models.ShoppingList, schemas.ShoppingListUpdate]:
     """Validate token, shopping list existence, ownership, and update data"""
-    shopping_list = validate_shopping_list_id(shopping_list_id, db)
+    shopping_list = ensure_shopping_list_access(shopping_list_id, current_user, db)
     validated_update = validate_shopping_list_update_data(shopping_list_update)
-    
-    # Validate kitchen ownership
-    validate_kitchen_ownership(shopping_list.kitchen_id, current_user.id, db)
     
     # If updating kitchen_id, validate ownership of new kitchen
     if validated_update.kitchen_id is not None:
-        validate_kitchen_ownership(validated_update.kitchen_id, current_user.id, db)
+        ensure_kitchen_access(validated_update.kitchen_id, current_user, db)
     
     return shopping_list, validated_update
 
@@ -179,9 +166,8 @@ def validate_authenticated_shopping_list_item_creation(
     """Validate token and shopping list item creation data with ownership"""
     validated_data = validate_shopping_list_item_create_data(item_data)
     
-    # Validate that the shopping list exists and user owns the kitchen
-    shopping_list = validate_shopping_list_id(validated_data.shopping_list_id, db)
-    validate_kitchen_ownership(shopping_list.kitchen_id, current_user.id, db)
+    # Validate that the shopping list exists and user owns it
+    ensure_shopping_list_access(validated_data.shopping_list_id, current_user, db)
     
     return validated_data
 
@@ -192,16 +178,11 @@ def validate_authenticated_shopping_list_item_update(
     db: Session = Depends(get_db)
 ) -> tuple[models.ShoppingListItem, schemas.ShoppingListItemUpdate]:
     """Validate token, shopping list item existence, ownership, and update data"""
-    item = validate_shopping_list_item_id(item_id, db)
+    item = ensure_shopping_list_item_access(item_id, current_user, db)
     validated_update = validate_shopping_list_item_update_data(item_update)
     
-    # Validate kitchen ownership through current shopping list
-    shopping_list = validate_shopping_list_id(item.shopping_list_id, db)
-    validate_kitchen_ownership(shopping_list.kitchen_id, current_user.id, db)
-    
-    # If updating shopping_list_id, validate ownership of new shopping list's kitchen
+    # If updating shopping_list_id, validate ownership of new shopping list
     if validated_update.shopping_list_id is not None:
-        new_shopping_list = validate_shopping_list_id(validated_update.shopping_list_id, db)
-        validate_kitchen_ownership(new_shopping_list.kitchen_id, current_user.id, db)
+        ensure_shopping_list_access(validated_update.shopping_list_id, current_user, db)
     
     return item, validated_update
