@@ -10,3 +10,5 @@ alembic
 pytest
 pytest-asyncio
 httpx
+psutil
+python-json-logger
