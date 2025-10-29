@@ -20,6 +20,30 @@ from .exceptions import (
     ShoppingListItemNotFoundException
 )
 
+class PantryItemNotFoundException(ValidationException):
+    def __init__(self, item_id: int):
+        super().__init__(
+            f"Pantry item with ID {item_id} not found",
+            field="pantry_item_id",
+            value=item_id
+        )
+
+class RefrigeratorItemNotFoundException(ValidationException):
+    def __init__(self, item_id: int):
+        super().__init__(
+            f"Refrigerator item with ID {item_id} not found",
+            field="refrigerator_item_id",
+            value=item_id
+        )
+
+class FreezerItemNotFoundException(ValidationException):
+    def __init__(self, item_id: int):
+        super().__init__(
+            f"Freezer item with ID {item_id} not found",
+            field="freezer_item_id",
+            value=item_id
+        )
+
 # OAuth2 scheme for token extraction
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
@@ -198,5 +222,194 @@ def validate_authenticated_shopping_list_item_update(
     # If updating shopping_list_id, validate ownership of new shopping list
     if validated_update.shopping_list_id is not None:
         ensure_shopping_list_access(validated_update.shopping_list_id, current_user, db)
+    
+    return item, validated_update
+
+# Pantry Item validation functions
+def validate_pantry_item_id(item_id: int, db: Session = Depends(get_db)) -> models.PantryItem:
+    """Validate that pantry item exists and return it"""
+    if item_id <= 0:
+        raise ValidationException(
+            "Pantry item ID must be a positive integer",
+            field="pantry_item_id",
+            value=item_id
+        )
+    
+    item = db.query(models.PantryItem).filter(models.PantryItem.id == item_id).first()
+    if not item:
+        raise PantryItemNotFoundException(item_id)
+    
+    return item
+
+def validate_pantry_item_create_data(data: schemas.PantryItemCreate) -> schemas.PantryItemCreate:
+    """Validate pantry item creation data using Pydantic schema"""
+    try:
+        return data
+    except PydanticValidationError as e:
+        raise ValidationException(f"Invalid pantry item data: {str(e)}")
+
+def validate_pantry_item_update_data(data: schemas.PantryItemUpdate) -> schemas.PantryItemUpdate:
+    """Validate pantry item update data using Pydantic schema"""
+    try:
+        return data
+    except PydanticValidationError as e:
+        raise ValidationException(f"Invalid pantry item update data: {str(e)}")
+
+def validate_authenticated_pantry_item_access(
+    item_id: int,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> models.PantryItem:
+    """Validate token and pantry item access with ownership validation"""
+    return ensure_pantry_item_access(item_id, current_user, db)
+
+def validate_authenticated_pantry_item_creation(
+    item_data: schemas.PantryItemCreate,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> schemas.PantryItemCreate:
+    """Validate token and pantry item creation data with ownership"""
+    validated_data = validate_pantry_item_create_data(item_data)
+    ensure_kitchen_access(validated_data.kitchen_id, current_user, db)
+    return validated_data
+
+def validate_authenticated_pantry_item_update(
+    item_id: int,
+    item_update: schemas.PantryItemUpdate,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> tuple[models.PantryItem, schemas.PantryItemUpdate]:
+    """Validate token, pantry item existence, ownership, and update data"""
+    item = ensure_pantry_item_access(item_id, current_user, db)
+    validated_update = validate_pantry_item_update_data(item_update)
+    
+    if validated_update.kitchen_id is not None:
+        ensure_kitchen_access(validated_update.kitchen_id, current_user, db)
+    
+    return item, validated_update
+
+# Refrigerator Item validation functions
+def validate_refrigerator_item_id(item_id: int, db: Session = Depends(get_db)) -> models.RefrigeratorItem:
+    """Validate that refrigerator item exists and return it"""
+    if item_id <= 0:
+        raise ValidationException(
+            "Refrigerator item ID must be a positive integer",
+            field="refrigerator_item_id",
+            value=item_id
+        )
+    
+    item = db.query(models.RefrigeratorItem).filter(models.RefrigeratorItem.id == item_id).first()
+    if not item:
+        raise RefrigeratorItemNotFoundException(item_id)
+    
+    return item
+
+def validate_refrigerator_item_create_data(data: schemas.RefrigeratorItemCreate) -> schemas.RefrigeratorItemCreate:
+    """Validate refrigerator item creation data using Pydantic schema"""
+    try:
+        return data
+    except PydanticValidationError as e:
+        raise ValidationException(f"Invalid refrigerator item data: {str(e)}")
+
+def validate_refrigerator_item_update_data(data: schemas.RefrigeratorItemUpdate) -> schemas.RefrigeratorItemUpdate:
+    """Validate refrigerator item update data using Pydantic schema"""
+    try:
+        return data
+    except PydanticValidationError as e:
+        raise ValidationException(f"Invalid refrigerator item update data: {str(e)}")
+
+def validate_authenticated_refrigerator_item_access(
+    item_id: int,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> models.RefrigeratorItem:
+    """Validate token and refrigerator item access with ownership validation"""
+    return ensure_refrigerator_item_access(item_id, current_user, db)
+
+def validate_authenticated_refrigerator_item_creation(
+    item_data: schemas.RefrigeratorItemCreate,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> schemas.RefrigeratorItemCreate:
+    """Validate token and refrigerator item creation data with ownership"""
+    validated_data = validate_refrigerator_item_create_data(item_data)
+    ensure_kitchen_access(validated_data.kitchen_id, current_user, db)
+    return validated_data
+
+def validate_authenticated_refrigerator_item_update(
+    item_id: int,
+    item_update: schemas.RefrigeratorItemUpdate,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> tuple[models.RefrigeratorItem, schemas.RefrigeratorItemUpdate]:
+    """Validate token, refrigerator item existence, ownership, and update data"""
+    item = ensure_refrigerator_item_access(item_id, current_user, db)
+    validated_update = validate_refrigerator_item_update_data(item_update)
+    
+    if validated_update.kitchen_id is not None:
+        ensure_kitchen_access(validated_update.kitchen_id, current_user, db)
+    
+    return item, validated_update
+
+# Freezer Item validation functions
+def validate_freezer_item_id(item_id: int, db: Session = Depends(get_db)) -> models.FreezerItem:
+    """Validate that freezer item exists and return it"""
+    if item_id <= 0:
+        raise ValidationException(
+            "Freezer item ID must be a positive integer",
+            field="freezer_item_id",
+            value=item_id
+        )
+    
+    item = db.query(models.FreezerItem).filter(models.FreezerItem.id == item_id).first()
+    if not item:
+        raise FreezerItemNotFoundException(item_id)
+    
+    return item
+
+def validate_freezer_item_create_data(data: schemas.FreezerItemCreate) -> schemas.FreezerItemCreate:
+    """Validate freezer item creation data using Pydantic schema"""
+    try:
+        return data
+    except PydanticValidationError as e:
+        raise ValidationException(f"Invalid freezer item data: {str(e)}")
+
+def validate_freezer_item_update_data(data: schemas.FreezerItemUpdate) -> schemas.FreezerItemUpdate:
+    """Validate freezer item update data using Pydantic schema"""
+    try:
+        return data
+    except PydanticValidationError as e:
+        raise ValidationException(f"Invalid freezer item update data: {str(e)}")
+
+def validate_authenticated_freezer_item_access(
+    item_id: int,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> models.FreezerItem:
+    """Validate token and freezer item access with ownership validation"""
+    return ensure_freezer_item_access(item_id, current_user, db)
+
+def validate_authenticated_freezer_item_creation(
+    item_data: schemas.FreezerItemCreate,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> schemas.FreezerItemCreate:
+    """Validate token and freezer item creation data with ownership"""
+    validated_data = validate_freezer_item_create_data(item_data)
+    ensure_kitchen_access(validated_data.kitchen_id, current_user, db)
+    return validated_data
+
+def validate_authenticated_freezer_item_update(
+    item_id: int,
+    item_update: schemas.FreezerItemUpdate,
+    current_user: models.User = Depends(validate_bearer_token),
+    db: Session = Depends(get_db)
+) -> tuple[models.FreezerItem, schemas.FreezerItemUpdate]:
+    """Validate token, freezer item existence, ownership, and update data"""
+    item = ensure_freezer_item_access(item_id, current_user, db)
+    validated_update = validate_freezer_item_update_data(item_update)
+    
+    if validated_update.kitchen_id is not None:
+        ensure_kitchen_access(validated_update.kitchen_id, current_user, db)
     
     return item, validated_update

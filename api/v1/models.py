@@ -35,6 +35,9 @@ class Kitchen(Base):
     # Relationships
     owner = relationship("User", back_populates="kitchens")
     shopping_lists = relationship("ShoppingList", back_populates="kitchen")
+    pantry_items = relationship("PantryItem", back_populates="kitchen")
+    refrigerator_items = relationship("RefrigeratorItem", back_populates="kitchen")
+    freezer_items = relationship("FreezerItem", back_populates="kitchen")
 
 class ShoppingList(Base):
     __tablename__ = "shopping_lists"
@@ -62,3 +65,51 @@ class ShoppingListItem(Base):
     
     # Relationship
     shopping_list = relationship("ShoppingList", back_populates="items")
+
+class PantryItem(Base):
+    __tablename__ = "pantry_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    quantity = Column(String(50), nullable=True)
+    quantity_type = Column(String(50), nullable=True)  # e.g., "pieces", "lbs", "oz", "cups"
+    upc = Column(String(20), nullable=True)  # Universal Product Code
+    kitchen_id = Column(Integer, ForeignKey("kitchens.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    kitchen = relationship("Kitchen", back_populates="pantry_items")
+
+class RefrigeratorItem(Base):
+    __tablename__ = "refrigerator_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    quantity = Column(String(50), nullable=True)
+    quantity_type = Column(String(50), nullable=True)  # e.g., "pieces", "lbs", "oz", "cups"
+    upc = Column(String(20), nullable=True)  # Universal Product Code
+    kitchen_id = Column(Integer, ForeignKey("kitchens.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    kitchen = relationship("Kitchen", back_populates="refrigerator_items")
+
+class FreezerItem(Base):
+    __tablename__ = "freezer_items"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    quantity = Column(String(50), nullable=True)
+    quantity_type = Column(String(50), nullable=True)  # e.g., "pieces", "lbs", "oz", "cups"
+    upc = Column(String(20), nullable=True)  # Universal Product Code
+    kitchen_id = Column(Integer, ForeignKey("kitchens.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationship
+    kitchen = relationship("Kitchen", back_populates="freezer_items")

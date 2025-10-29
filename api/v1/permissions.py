@@ -90,6 +90,51 @@ class OwnershipValidator:
         ).join(models.Kitchen).filter(
             models.Kitchen.owner_id == user_id
         ).all()
+    
+    @staticmethod
+    def validate_pantry_item_ownership(item_id: int, user_id: int, db: Session) -> models.PantryItem:
+        """Validate that user owns the pantry item through kitchen ownership"""
+        item = db.query(models.PantryItem).filter(models.PantryItem.id == item_id).first()
+        if not item:
+            from .exceptions import ResourceNotFoundException
+            raise ResourceNotFoundException("PantryItem", item_id)
+        
+        kitchen = db.query(models.Kitchen).filter(models.Kitchen.id == item.kitchen_id).first()
+        if not kitchen or kitchen.owner_id != user_id:
+            from .exceptions import AuthorizationException
+            raise AuthorizationException(f"Access denied to pantry item {item_id}")
+        
+        return item
+    
+    @staticmethod
+    def validate_refrigerator_item_ownership(item_id: int, user_id: int, db: Session) -> models.RefrigeratorItem:
+        """Validate that user owns the refrigerator item through kitchen ownership"""
+        item = db.query(models.RefrigeratorItem).filter(models.RefrigeratorItem.id == item_id).first()
+        if not item:
+            from .exceptions import ResourceNotFoundException
+            raise ResourceNotFoundException("RefrigeratorItem", item_id)
+        
+        kitchen = db.query(models.Kitchen).filter(models.Kitchen.id == item.kitchen_id).first()
+        if not kitchen or kitchen.owner_id != user_id:
+            from .exceptions import AuthorizationException
+            raise AuthorizationException(f"Access denied to refrigerator item {item_id}")
+        
+        return item
+    
+    @staticmethod
+    def validate_freezer_item_ownership(item_id: int, user_id: int, db: Session) -> models.FreezerItem:
+        """Validate that user owns the freezer item through kitchen ownership"""
+        item = db.query(models.FreezerItem).filter(models.FreezerItem.id == item_id).first()
+        if not item:
+            from .exceptions import ResourceNotFoundException
+            raise ResourceNotFoundException("FreezerItem", item_id)
+        
+        kitchen = db.query(models.Kitchen).filter(models.Kitchen.id == item.kitchen_id).first()
+        if not kitchen or kitchen.owner_id != user_id:
+            from .exceptions import AuthorizationException
+            raise AuthorizationException(f"Access denied to freezer item {item_id}")
+        
+        return item
 
 # Convenience functions for common operations
 def ensure_kitchen_access(kitchen_id: int, user: models.User, db: Session) -> models.Kitchen:
@@ -103,3 +148,15 @@ def ensure_shopping_list_access(shopping_list_id: int, user: models.User, db: Se
 def ensure_shopping_list_item_access(item_id: int, user: models.User, db: Session) -> models.ShoppingListItem:
     """Ensure user has access to shopping list item, return item if valid"""
     return OwnershipValidator.validate_shopping_list_item_ownership(item_id, user.id, db)
+
+def ensure_pantry_item_access(item_id: int, user: models.User, db: Session) -> models.PantryItem:
+    """Ensure user has access to pantry item, return item if valid"""
+    return OwnershipValidator.validate_pantry_item_ownership(item_id, user.id, db)
+
+def ensure_refrigerator_item_access(item_id: int, user: models.User, db: Session) -> models.RefrigeratorItem:
+    """Ensure user has access to refrigerator item, return item if valid"""
+    return OwnershipValidator.validate_refrigerator_item_ownership(item_id, user.id, db)
+
+def ensure_freezer_item_access(item_id: int, user: models.User, db: Session) -> models.FreezerItem:
+    """Ensure user has access to freezer item, return item if valid"""
+    return OwnershipValidator.validate_freezer_item_ownership(item_id, user.id, db)

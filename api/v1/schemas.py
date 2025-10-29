@@ -187,5 +187,117 @@ class PaginatedShoppingListItemsResponse(BaseModel):
     has_next: bool
     has_prev: bool
 
+# Pantry Item schemas
+class PantryItemBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    quantity: Optional[str] = None
+    quantity_type: Optional[str] = None
+    upc: Optional[str] = None
+    kitchen_id: int
+
+class PantryItemCreate(PantryItemBase):
+    pass
+
+class PantryItemUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    quantity: Optional[str] = None
+    quantity_type: Optional[str] = None
+    upc: Optional[str] = None
+    kitchen_id: Optional[int] = None
+
+class PantryItem(PantryItemBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Refrigerator Item schemas
+class RefrigeratorItemBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    quantity: Optional[str] = None
+    quantity_type: Optional[str] = None
+    upc: Optional[str] = None
+    kitchen_id: int
+
+class RefrigeratorItemCreate(RefrigeratorItemBase):
+    pass
+
+class RefrigeratorItemUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    quantity: Optional[str] = None
+    quantity_type: Optional[str] = None
+    upc: Optional[str] = None
+    kitchen_id: Optional[int] = None
+
+class RefrigeratorItem(RefrigeratorItemBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Freezer Item schemas
+class FreezerItemBase(BaseModel):
+    name: str
+    description: Optional[str] = None
+    quantity: Optional[str] = None
+    quantity_type: Optional[str] = None
+    upc: Optional[str] = None
+    kitchen_id: int
+
+class FreezerItemCreate(FreezerItemBase):
+    pass
+
+class FreezerItemUpdate(BaseModel):
+    name: Optional[str] = None
+    description: Optional[str] = None
+    quantity: Optional[str] = None
+    quantity_type: Optional[str] = None
+    upc: Optional[str] = None
+    kitchen_id: Optional[int] = None
+
+class FreezerItem(FreezerItemBase):
+    id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# Paginated response schemas for new items
+class PaginatedPantryItemsResponse(BaseModel):
+    items: List[PantryItem]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    has_next: bool
+    has_prev: bool
+
+class PaginatedRefrigeratorItemsResponse(BaseModel):
+    items: List[RefrigeratorItem]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    has_next: bool
+    has_prev: bool
+
+class PaginatedFreezerItemsResponse(BaseModel):
+    items: List[FreezerItem]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    has_next: bool
+    has_prev: bool
+
 # Update forward references
 ShoppingList.model_rebuild()
