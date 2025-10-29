@@ -1,0 +1,59 @@
+version: "3.8"
+
+services:
+  # Development Database
+  db:
+    image: postgres:15-alpine
+    container_name: kitchen_manager_db_dev
+    environment:
+      POSTGRES_DB: kitchen_manager_dev
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - postgres_dev_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+    networks:
+      - kitchen_dev_network
+
+  # Development Redis
+  redis:
+    image: redis:7-alpine
+    container_name: kitchen_manager_redis_dev
+    ports:
+      - "6380:6379"
+    networks:
+      - kitchen_dev_network
+
+  # Development API with hot reload
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: kitchen_manager_api_dev
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/kitchen_manager_dev
+      - REDIS_URL=redis://redis:6379
+      - SECRET_KEY=dev-secret-key-not-for-production
+      - ACCESS_TOKEN_EXPIRE_MINUTES=60
+      - ENVIRONMENT=development
+      - DEBUG=true
+    ports:
+      - "8001:8000"
+    depends_on:
+      - db
+      - redis
+    networks:
+      - kitchen_dev_network
+    volumes:
+      - .:/app
+      - /app/__pycache__
+    command:
+      ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+
+volumes:
+  postgres_dev_data:
+
+networks:
+  kitchen_dev_network:
+    driver: bridge
