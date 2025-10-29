@@ -8,6 +8,13 @@ import math
 from . import schemas, models
 from .database import get_db
 from .filters import filter_kitchens
+from .exceptions import (
+    DuplicateUsernameException,
+    DuplicateEmailException,
+    InvalidCredentialsException,
+    KitchenNotFoundException,
+    KitchenAccessDeniedException
+)
 from auth import authenticate_user, create_access_token, create_user, get_current_active_user
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
 
@@ -19,20 +26,14 @@ def register_user(user_data: schemas.UserCreate, db: Session = Depends(get_db)):
     # Check if username already exists
     existing_user = db.query(models.User).filter(models.User.username == user_data.username).first()
     if existing_user:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Username already registered"
-        )
+        raise DuplicateUsernameException(user_data.username)
     
     # Check if email already exists
     existing_email = db.query(models.User).filter(models.User.email == user_data.email).first()
     if existing_email:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Email already registered"
-        )
+        raise DuplicateEmailException(user_data.email)
     
-    # Create new user
+    # Create new user (this will handle database errors internally)
     user = create_user(
         username=user_data.username,
         email=user_data.email,
@@ -49,11 +50,7 @@ def login(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depend
     """Login and get access token"""
     user = authenticate_user(form_data.username, form_data.password, db)
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise InvalidCredentialsException()
     
     access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
@@ -87,17 +84,18 @@ def update_current_user(
             models.User.id != current_user.id
         ).first()
         if existing_email:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Email already registered"
-            )
+            raise DuplicateEmailException(update_data['email'])
     
-    for field, value in update_data.items():
-        setattr(current_user, field, value)
-    
-    db.commit()
-    db.refresh(current_user)
-    return current_user
+    try:
+        for field, value in update_data.items():
+            setattr(current_user, field, value)
+        
+        db.commit()
+        db.refresh(current_user)
+        return current_user
+    except Exception as e:
+        db.rollback()
+        raise DatabaseException(f"Failed to update user: {str(e)}", operation="update_user")
 
 # Kitchen routes
 @router.post("/kitchens/", response_model=schemas.Kitchen, status_code=status.HTTP_201_CREATED)
@@ -174,16 +172,14 @@ def get_kitchen(
     db: Session = Depends(get_db)
 ):
     """Get a specific kitchen"""
-    kitchen = db.query(models.Kitchen).filter(
-        models.Kitchen.id == kitchen_id,
-        models.Kitchen.owner_id == current_user.id
-    ).first()
-    
+    # First check if kitchen exists
+    kitchen = db.query(models.Kitchen).filter(models.Kitchen.id == kitchen_id).first()
     if not kitchen:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Kitchen not found"
-        )
+        raise KitchenNotFoundException(kitchen_id)
+    
+    # Then check ownership
+    if kitchen.owner_id != current_user.id:
+        raise KitchenAccessDeniedException(kitchen_id)
     
     return kitchen
 

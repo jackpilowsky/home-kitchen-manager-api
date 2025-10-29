@@ -1,4 +1,4 @@
-from fastapi import HTTPException, Depends, status
+from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from jose import JWTError, jwt
@@ -8,17 +8,20 @@ from config import SECRET_KEY, ALGORITHM
 from . import models, schemas
 from .permissions import ensure_kitchen_access, ensure_shopping_list_access, ensure_shopping_list_item_access
 from .database import get_db
+from .exceptions import (
+    AuthenticationException,
+    ValidationException,
+    TokenExpiredException,
+    InvalidTokenException,
+    InactiveUserException,
+    UserNotFoundException,
+    KitchenNotFoundException,
+    ShoppingListNotFoundException,
+    ShoppingListItemNotFoundException
+)
 
 # OAuth2 scheme for token extraction
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
-
-class AuthenticationError(HTTPException):
-    def __init__(self, detail: str = "Authentication failed", status_code: int = 401):
-        super().__init__(status_code=status_code, detail=detail)
-
-class ValidationError(HTTPException):
-    def __init__(self, detail: str, status_code: int = 400):
-        super().__init__(status_code=status_code, detail=detail)
 
 async def validate_bearer_token(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)) -> models.User:
     """Validate JWT bearer token and return user"""
@@ -28,44 +31,55 @@ async def validate_bearer_token(token: str = Depends(oauth2_scheme), db: Session
         username: str = payload.get("sub")
         
         if username is None:
-            raise AuthenticationError("Invalid token: missing user identifier")
+            raise InvalidTokenException("Missing user identifier")
         
         # Get user from database
         user = db.query(models.User).filter(models.User.username == username).first()
         if not user:
-            raise AuthenticationError("User not found")
+            raise UserNotFoundException(username)
         
         if not user.is_active:
-            raise AuthenticationError("User account is inactive")
+            raise InactiveUserException()
         
         return user
         
     except ExpiredSignatureError:
-        raise AuthenticationError("Token has expired")
+        raise TokenExpiredException()
     except JWTError as e:
-        raise AuthenticationError(f"Invalid token: {str(e)}")
+        raise InvalidTokenException(str(e))
+    except (UserNotFoundException, InactiveUserException, TokenExpiredException, InvalidTokenException):
+        # Re-raise our custom exceptions
+        raise
     except Exception as e:
-        raise AuthenticationError(f"Token validation failed: {str(e)}")
+        raise InvalidTokenException(f"Token validation failed: {str(e)}")
 
 def validate_shopping_list_id(shopping_list_id: int, db: Session = Depends(get_db)) -> models.ShoppingList:
     """Validate that shopping list exists and return it"""
     if shopping_list_id <= 0:
-        raise ValidationError("Shopping list ID must be a positive integer")
+        raise ValidationException(
+            "Shopping list ID must be a positive integer",
+            field="shopping_list_id",
+            value=shopping_list_id
+        )
     
     shopping_list = db.query(models.ShoppingList).filter(models.ShoppingList.id == shopping_list_id).first()
     if not shopping_list:
-        raise ValidationError("Shopping list not found", status_code=404)
+        raise ShoppingListNotFoundException(shopping_list_id)
     
     return shopping_list
 
 def validate_shopping_list_item_id(item_id: int, db: Session = Depends(get_db)) -> models.ShoppingListItem:
     """Validate that shopping list item exists and return it"""
     if item_id <= 0:
-        raise ValidationError("Shopping list item ID must be a positive integer")
+        raise ValidationException(
+            "Shopping list item ID must be a positive integer",
+            field="item_id",
+            value=item_id
+        )
     
     item = db.query(models.ShoppingListItem).filter(models.ShoppingListItem.id == item_id).first()
     if not item:
-        raise ValidationError("Shopping list item not found", status_code=404)
+        raise ShoppingListItemNotFoundException(item_id)
     
     return item
 
@@ -75,7 +89,7 @@ def validate_shopping_list_create_data(data: schemas.ShoppingListCreate) -> sche
         # Pydantic automatically validates the data structure and types
         return data
     except PydanticValidationError as e:
-        raise ValidationError(f"Invalid shopping list data: {str(e)}")
+        raise ValidationException(f"Invalid shopping list data: {str(e)}")
 
 def validate_shopping_list_update_data(data: schemas.ShoppingListUpdate) -> schemas.ShoppingListUpdate:
     """Validate shopping list update data using Pydantic schema"""
@@ -83,7 +97,7 @@ def validate_shopping_list_update_data(data: schemas.ShoppingListUpdate) -> sche
         # Pydantic automatically validates the data structure and types
         return data
     except PydanticValidationError as e:
-        raise ValidationError(f"Invalid shopping list update data: {str(e)}")
+        raise ValidationException(f"Invalid shopping list update data: {str(e)}")
 
 def validate_shopping_list_item_create_data(data: schemas.ShoppingListItemCreate) -> schemas.ShoppingListItemCreate:
     """Validate shopping list item creation data using Pydantic schema"""
@@ -91,7 +105,7 @@ def validate_shopping_list_item_create_data(data: schemas.ShoppingListItemCreate
         # Pydantic automatically validates the data structure and types
         return data
     except PydanticValidationError as e:
-        raise ValidationError(f"Invalid shopping list item data: {str(e)}")
+        raise ValidationException(f"Invalid shopping list item data: {str(e)}")
 
 def validate_shopping_list_item_update_data(data: schemas.ShoppingListItemUpdate) -> schemas.ShoppingListItemUpdate:
     """Validate shopping list item update data using Pydantic schema"""
@@ -99,7 +113,7 @@ def validate_shopping_list_item_update_data(data: schemas.ShoppingListItemUpdate
         # Pydantic automatically validates the data structure and types
         return data
     except PydanticValidationError as e:
-        raise ValidationError(f"Invalid shopping list item update data: {str(e)}")
+        raise ValidationException(f"Invalid shopping list item update data: {str(e)}")
 
 def validate_kitchen_ownership(kitchen_id: int, user_id: int, db: Session):
     """Validate that user owns the kitchen"""
