@@ -1,11 +1,13 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
-from datetime import timedelta
-from typing import List
+from datetime import timedelta, date
+from typing import List, Optional
+import math
 
 from . import schemas, models
 from .database import get_db
+from .filters import filter_kitchens
 from auth import authenticate_user, create_access_token, create_user, get_current_active_user
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
 
@@ -115,14 +117,55 @@ def create_kitchen(
     db.refresh(kitchen)
     return kitchen
 
-@router.get("/kitchens/", response_model=List[schemas.Kitchen])
+@router.get("/kitchens/", response_model=schemas.PaginatedKitchensResponse)
 def list_user_kitchens(
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of items to return"),
+    name: Optional[str] = Query(None, description="Filter by name (partial match)"),
+    search: Optional[str] = Query(None, description="Search in name and description"),
+    date_from: Optional[date] = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    date_to: Optional[date] = Query(None, description="Filter to date (YYYY-MM-DD)"),
+    sort_by: Optional[str] = Query("created_at", description="Sort by field (name, created_at, updated_at)"),
+    sort_order: Optional[str] = Query("desc", description="Sort order (asc, desc)"),
     current_user: models.User = Depends(get_current_active_user),
     db: Session = Depends(get_db)
 ):
-    """List current user's kitchens"""
-    kitchens = db.query(models.Kitchen).filter(models.Kitchen.owner_id == current_user.id).all()
-    return kitchens
+    """List current user's kitchens with filtering and search"""
+    # Base query with ownership filtering
+    base_query = db.query(models.Kitchen).filter(models.Kitchen.owner_id == current_user.id)
+    
+    # Apply filters
+    filters = {
+        'name': name,
+        'owner_id': current_user.id,
+        'search': search,
+        'date_from': date_from,
+        'date_to': date_to,
+        'sort_by': sort_by,
+        'sort_order': sort_order
+    }
+    
+    filtered_query = filter_kitchens(base_query, **filters)
+    
+    # Get total count for pagination
+    total = filtered_query.count()
+    
+    # Apply pagination
+    kitchens = filtered_query.offset(skip).limit(limit).all()
+    
+    # Calculate pagination metadata
+    page = (skip // limit) + 1
+    pages = math.ceil(total / limit) if total > 0 else 1
+    
+    return schemas.PaginatedKitchensResponse(
+        items=kitchens,
+        total=total,
+        page=page,
+        per_page=limit,
+        pages=pages,
+        has_next=skip + limit < total,
+        has_prev=skip > 0
+    )
 
 @router.get("/kitchens/{kitchen_id}", response_model=schemas.Kitchen)
 def get_kitchen(

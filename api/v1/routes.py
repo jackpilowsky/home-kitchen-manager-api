@@ -1,8 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+from datetime import date
+import math
 from . import schemas, models
 from .database import get_db
+from .filters import filter_shopping_lists, filter_shopping_list_items
 from .validation import (
     validate_bearer_token,
     validate_authenticated_shopping_list_access,
@@ -27,21 +30,64 @@ def create_shopping_list(
     db.refresh(db_shopping_list)
     return db_shopping_list
 
-@router.get("/shopping-lists/", response_model=List[schemas.ShoppingList])
+@router.get("/shopping-lists/", response_model=schemas.PaginatedShoppingListsResponse)
 def list_shopping_lists(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of items to return"),
+    name: Optional[str] = Query(None, description="Filter by name (partial match)"),
+    kitchen_id: Optional[int] = Query(None, description="Filter by kitchen ID"),
+    search: Optional[str] = Query(None, description="Search in name and description"),
+    date_from: Optional[date] = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    date_to: Optional[date] = Query(None, description="Filter to date (YYYY-MM-DD)"),
+    has_items: Optional[bool] = Query(None, description="Filter by whether list has items"),
+    sort_by: Optional[str] = Query("created_at", description="Sort by field (name, created_at, updated_at)"),
+    sort_order: Optional[str] = Query("desc", description="Sort order (asc, desc)"),
     current_user: models.User = Depends(validate_bearer_token),
     db: Session = Depends(get_db)
 ):
-    # Only return shopping lists from user's kitchens
+    # Get user's kitchen IDs for ownership filtering
     user_kitchens = db.query(models.Kitchen).filter(models.Kitchen.owner_id == current_user.id).all()
     kitchen_ids = [kitchen.id for kitchen in user_kitchens]
     
-    shopping_lists = db.query(models.ShoppingList).filter(
+    # Base query with ownership filtering
+    base_query = db.query(models.ShoppingList).filter(
         models.ShoppingList.kitchen_id.in_(kitchen_ids)
-    ).offset(skip).limit(limit).all()
-    return shopping_lists
+    )
+    
+    # Apply filters
+    filters = {
+        'name': name,
+        'kitchen_id': kitchen_id,
+        'search': search,
+        'date_from': date_from,
+        'date_to': date_to,
+        'has_items': has_items,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'kitchen_ids': kitchen_ids  # Ensure we only get user's lists
+    }
+    
+    filtered_query = filter_shopping_lists(base_query, **filters)
+    
+    # Get total count for pagination
+    total = filtered_query.count()
+    
+    # Apply pagination
+    shopping_lists = filtered_query.offset(skip).limit(limit).all()
+    
+    # Calculate pagination metadata
+    page = (skip // limit) + 1
+    pages = math.ceil(total / limit) if total > 0 else 1
+    
+    return schemas.PaginatedShoppingListsResponse(
+        items=shopping_lists,
+        total=total,
+        page=page,
+        per_page=limit,
+        pages=pages,
+        has_next=skip + limit < total,
+        has_prev=skip > 0
+    )
 
 @router.get("/shopping-lists/{shopping_list_id}", response_model=schemas.ShoppingList)
 def get_shopping_list(
@@ -89,21 +135,72 @@ def create_shopping_list_item(
     db.refresh(db_item)
     return db_item
 
-@router.get("/shopping-list-items/", response_model=List[schemas.ShoppingListItem])
+@router.get("/shopping-list-items/", response_model=schemas.PaginatedShoppingListItemsResponse)
 def list_shopping_list_items(
-    skip: int = 0,
-    limit: int = 100,
+    skip: int = Query(0, ge=0, description="Number of items to skip"),
+    limit: int = Query(100, ge=1, le=1000, description="Number of items to return"),
+    name: Optional[str] = Query(None, description="Filter by item name (partial match)"),
+    shopping_list_id: Optional[int] = Query(None, description="Filter by shopping list ID"),
+    kitchen_id: Optional[int] = Query(None, description="Filter by kitchen ID"),
+    quantity_contains: Optional[str] = Query(None, description="Filter by quantity text (partial match)"),
+    search: Optional[str] = Query(None, description="Search in name and quantity"),
+    date_from: Optional[date] = Query(None, description="Filter from date (YYYY-MM-DD)"),
+    date_to: Optional[date] = Query(None, description="Filter to date (YYYY-MM-DD)"),
+    sort_by: Optional[str] = Query("created_at", description="Sort by field (name, quantity, created_at, updated_at)"),
+    sort_order: Optional[str] = Query("desc", description="Sort order (asc, desc)"),
     current_user: models.User = Depends(validate_bearer_token),
     db: Session = Depends(get_db)
 ):
-    # Only return items from user's kitchens
+    # Get user's kitchen IDs for ownership filtering
     user_kitchens = db.query(models.Kitchen).filter(models.Kitchen.owner_id == current_user.id).all()
     kitchen_ids = [kitchen.id for kitchen in user_kitchens]
     
-    items = db.query(models.ShoppingListItem).join(models.ShoppingList).filter(
+    # Get user's shopping list IDs for ownership filtering
+    user_shopping_lists = db.query(models.ShoppingList).filter(
         models.ShoppingList.kitchen_id.in_(kitchen_ids)
-    ).offset(skip).limit(limit).all()
-    return items
+    ).all()
+    shopping_list_ids = [sl.id for sl in user_shopping_lists]
+    
+    # Base query with ownership filtering
+    base_query = db.query(models.ShoppingListItem).filter(
+        models.ShoppingListItem.shopping_list_id.in_(shopping_list_ids)
+    )
+    
+    # Apply filters
+    filters = {
+        'name': name,
+        'shopping_list_id': shopping_list_id,
+        'kitchen_id': kitchen_id,
+        'quantity_contains': quantity_contains,
+        'search': search,
+        'date_from': date_from,
+        'date_to': date_to,
+        'sort_by': sort_by,
+        'sort_order': sort_order,
+        'shopping_list_ids': shopping_list_ids  # Ensure we only get user's items
+    }
+    
+    filtered_query = filter_shopping_list_items(base_query, **filters)
+    
+    # Get total count for pagination
+    total = filtered_query.count()
+    
+    # Apply pagination
+    items = filtered_query.offset(skip).limit(limit).all()
+    
+    # Calculate pagination metadata
+    page = (skip // limit) + 1
+    pages = math.ceil(total / limit) if total > 0 else 1
+    
+    return schemas.PaginatedShoppingListItemsResponse(
+        items=items,
+        total=total,
+        page=page,
+        per_page=limit,
+        pages=pages,
+        has_next=skip + limit < total,
+        has_prev=skip > 0
+    )
 
 @router.get("/shopping-list-items/{item_id}", response_model=schemas.ShoppingListItem)
 def get_shopping_list_item(

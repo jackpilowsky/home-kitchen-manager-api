@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from api.v1.routes import router as v1_router
 from api.v1.auth_routes import router as auth_router
+from api.v1.search_routes import router as search_router
 
 # --- App setup ---
 app = FastAPI(
@@ -12,6 +13,7 @@ app = FastAPI(
 # Include API routes
 app.include_router(auth_router, prefix="/api/v1/auth", tags=["authentication"])
 app.include_router(v1_router, prefix="/api/v1", tags=["shopping-lists"])
+app.include_router(search_router, prefix="/api/v1", tags=["search"])
 
 @app.get("/")
 def read_root():

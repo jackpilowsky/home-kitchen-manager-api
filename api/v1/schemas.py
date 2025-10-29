@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, validator
-from typing import List, Optional, Union
-from datetime import datetime
+from typing import List, Optional, Union, Any
+from datetime import datetime, date
 import re
 
 # User schemas
@@ -119,6 +119,73 @@ class ShoppingListItem(ShoppingListItemBase):
     
     class Config:
         from_attributes = True
+
+# Filter and Search schemas
+class KitchenFilters(BaseModel):
+    name: Optional[str] = None
+    search: Optional[str] = None
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    sort_by: Optional[str] = None
+    sort_order: Optional[str] = None
+
+class ShoppingListFilters(BaseModel):
+    name: Optional[str] = None
+    kitchen_id: Optional[int] = None
+    search: Optional[str] = None
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    has_items: Optional[bool] = None
+    sort_by: Optional[str] = None
+    sort_order: Optional[str] = None
+
+class ShoppingListItemFilters(BaseModel):
+    name: Optional[str] = None
+    shopping_list_id: Optional[int] = None
+    kitchen_id: Optional[int] = None
+    quantity_contains: Optional[str] = None
+    search: Optional[str] = None
+    date_from: Optional[date] = None
+    date_to: Optional[date] = None
+    sort_by: Optional[str] = None
+    sort_order: Optional[str] = None
+
+# Pagination response schema
+class PaginatedResponse(BaseModel):
+    items: List[Any]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    has_next: bool
+    has_prev: bool
+
+class PaginatedKitchensResponse(BaseModel):
+    items: List[Kitchen]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    has_next: bool
+    has_prev: bool
+
+class PaginatedShoppingListsResponse(BaseModel):
+    items: List[ShoppingList]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    has_next: bool
+    has_prev: bool
+
+class PaginatedShoppingListItemsResponse(BaseModel):
+    items: List[ShoppingListItem]
+    total: int
+    page: int
+    per_page: int
+    pages: int
+    has_next: bool
+    has_prev: bool
 
 # Update forward references
 ShoppingList.model_rebuild()
