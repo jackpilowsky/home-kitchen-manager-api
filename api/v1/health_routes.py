@@ -5,7 +5,7 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-from .database import get_db
+from .database import get_db, db_manager
 from .monitoring import metrics_collector, performance_profiler
 from .exceptions import DatabaseException
 
@@ -40,17 +40,18 @@ async def detailed_health_check(db: Session = Depends(get_db)):
         "components": {}
     }
     
-    # Database health check
+    # Database health check with detailed pool information
     try:
-        db.execute(text("SELECT 1"))
-        health_data["components"]["database"] = {
-            "status": "healthy",
-            "message": "Database connection successful"
-        }
+        db_health = db_manager.health_check()
+        health_data["components"]["database"] = db_health
+        
+        if db_health["status"] != "healthy":
+            health_data["overall_status"] = "unhealthy"
+            
     except Exception as e:
         health_data["components"]["database"] = {
             "status": "unhealthy",
-            "message": f"Database connection failed: {str(e)}"
+            "message": f"Database health check failed: {str(e)}"
         }
         health_data["overall_status"] = "unhealthy"
     
@@ -353,3 +354,145 @@ async def get_user_activity_metrics():
     except Exception as e:
         logger.error(f"Failed to get user activity metrics: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve user activity metrics")
+
+@router.get("/database/status", response_model=Dict[str, Any])
+async def get_database_status():
+    """
+    Get comprehensive database status and connection pool information
+    """
+    try:
+        # Get database health check
+        health_status = db_manager.health_check()
+        
+        # Get connection pool status
+        pool_status = db_manager.get_pool_status()
+        
+        # Get database server information
+        db_info = {}
+        try:
+            from .database import get_database_info
+            db_info = get_database_info()
+        except Exception as e:
+            logger.warning(f"Could not get database info: {e}")
+            db_info = {"error": "Database info unavailable"}
+        
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "health": health_status,
+            "pool": pool_status,
+            "server_info": db_info,
+            "configuration": {
+                "pool_size": db_manager.engine.pool.size() if hasattr(db_manager.engine.pool, 'size') else 'N/A',
+                "max_overflow": db_manager.engine.pool._max_overflow if hasattr(db_manager.engine.pool, '_max_overflow') else 'N/A',
+                "pool_timeout": getattr(db_manager.engine.pool, '_timeout', 'N/A'),
+                "pool_recycle": getattr(db_manager.engine.pool, '_recycle', 'N/A'),
+                "pool_pre_ping": getattr(db_manager.engine.pool, '_pre_ping', 'N/A'),
+            }
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get database status: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve database status")
+
+@router.get("/database/connections", response_model=Dict[str, Any])
+async def get_database_connections(db: Session = Depends(get_db)):
+    """
+    Get information about active database connections
+    """
+    try:
+        # Query PostgreSQL system tables for connection information
+        connection_query = text("""
+            SELECT 
+                count(*) as total_connections,
+                count(*) FILTER (WHERE state = 'active') as active_connections,
+                count(*) FILTER (WHERE state = 'idle') as idle_connections,
+                count(*) FILTER (WHERE state = 'idle in transaction') as idle_in_transaction,
+                count(*) FILTER (WHERE application_name = :app_name) as app_connections
+            FROM pg_stat_activity 
+            WHERE pid != pg_backend_pid()
+        """)
+        
+        result = db.execute(connection_query, {"app_name": "kitchen_manager_api"})
+        row = result.fetchone()
+        
+        # Get connection pool status
+        pool_status = db_manager.get_pool_status()
+        
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "database_connections": {
+                "total": row[0] if row else 0,
+                "active": row[1] if row else 0,
+                "idle": row[2] if row else 0,
+                "idle_in_transaction": row[3] if row else 0,
+                "from_this_app": row[4] if row else 0,
+            },
+            "connection_pool": pool_status
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get database connections: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve database connection information")
+
+@router.get("/database/performance", response_model=Dict[str, Any])
+async def get_database_performance(db: Session = Depends(get_db)):
+    """
+    Get database performance metrics
+    """
+    try:
+        # Query for database performance statistics
+        performance_query = text("""
+            SELECT 
+                schemaname,
+                tablename,
+                seq_scan,
+                seq_tup_read,
+                idx_scan,
+                idx_tup_fetch,
+                n_tup_ins,
+                n_tup_upd,
+                n_tup_del
+            FROM pg_stat_user_tables 
+            ORDER BY seq_scan + idx_scan DESC
+            LIMIT 10
+        """)
+        
+        result = db.execute(performance_query)
+        table_stats = []
+        
+        for row in result:
+            table_stats.append({
+                "schema": row[0],
+                "table": row[1],
+                "sequential_scans": row[2],
+                "sequential_tuples_read": row[3],
+                "index_scans": row[4],
+                "index_tuples_fetched": row[5],
+                "inserts": row[6],
+                "updates": row[7],
+                "deletes": row[8],
+                "total_operations": (row[2] or 0) + (row[4] or 0) + (row[6] or 0) + (row[7] or 0) + (row[8] or 0)
+            })
+        
+        # Get database size information
+        size_query = text("""
+            SELECT 
+                pg_size_pretty(pg_database_size(current_database())) as database_size,
+                pg_database_size(current_database()) as database_size_bytes
+        """)
+        
+        size_result = db.execute(size_query)
+        size_row = size_result.fetchone()
+        
+        return {
+            "timestamp": datetime.utcnow().isoformat(),
+            "database_size": {
+                "human_readable": size_row[0] if size_row else "Unknown",
+                "bytes": size_row[1] if size_row else 0
+            },
+            "table_statistics": table_stats
+        }
+        
+    except Exception as e:
+        logger.error(f"Failed to get database performance metrics: {e}")
+        raise HTTPException(status_code=500, detail="Failed to retrieve database performance metrics")
