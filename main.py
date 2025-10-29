@@ -3,9 +3,13 @@ from fastapi.security import OAuth2PasswordRequestForm
 from datetime import timedelta
 from config import ACCESS_TOKEN_EXPIRE_MINUTES
 from auth import authenticate_user, create_access_token, get_current_user
+from api.v1.routes import router as v1_router
 
 # --- App setup ---
-app = FastAPI()
+app = FastAPI(title="Home Kitchen Manager API", version="1.0.0")
+
+# Include API routes
+app.include_router(v1_router, prefix="/api/v1", tags=["v1"])
 
 # --- Routes ---
 @app.post("/token")
