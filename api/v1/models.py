@@ -1,9 +1,40 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
 Base = declarative_base()
+
+class User(Base):
+    __tablename__ = "users"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String(50), unique=True, nullable=False, index=True)
+    email = Column(String(255), unique=True, nullable=False, index=True)
+    hashed_password = Column(String(255), nullable=False)
+    first_name = Column(String(100), nullable=True)
+    last_name = Column(String(100), nullable=True)
+    is_active = Column(Boolean, default=True)
+    is_verified = Column(Boolean, default=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    kitchens = relationship("Kitchen", back_populates="owner")
+
+class Kitchen(Base):
+    __tablename__ = "kitchens"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(200), nullable=False)
+    description = Column(Text, nullable=True)
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    # Relationships
+    owner = relationship("User", back_populates="kitchens")
+    shopping_lists = relationship("ShoppingList", back_populates="kitchen")
 
 class ShoppingList(Base):
     __tablename__ = "shopping_lists"
@@ -11,11 +42,12 @@ class ShoppingList(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(200), nullable=False)
     description = Column(Text, nullable=True)
-    kitchen_id = Column(Integer, nullable=False)
+    kitchen_id = Column(Integer, ForeignKey("kitchens.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
-    # Relationship
+    # Relationships
+    kitchen = relationship("Kitchen", back_populates="shopping_lists")
     items = relationship("ShoppingListItem", back_populates="shopping_list")
 
 class ShoppingListItem(Base):
@@ -24,7 +56,7 @@ class ShoppingListItem(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String(100), nullable=False)
     quantity = Column(String(50), nullable=False)
-    shopping_list_id = Column(Integer, ForeignKey("shopping_lists.id"))
+    shopping_list_id = Column(Integer, ForeignKey("shopping_lists.id"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     

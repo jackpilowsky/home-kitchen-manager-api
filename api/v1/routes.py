@@ -31,10 +31,16 @@ def create_shopping_list(
 def list_shopping_lists(
     skip: int = 0,
     limit: int = 100,
-    current_user: dict = Depends(validate_bearer_token),
+    current_user: models.User = Depends(validate_bearer_token),
     db: Session = Depends(get_db)
 ):
-    shopping_lists = db.query(models.ShoppingList).offset(skip).limit(limit).all()
+    # Only return shopping lists from user's kitchens
+    user_kitchens = db.query(models.Kitchen).filter(models.Kitchen.owner_id == current_user.id).all()
+    kitchen_ids = [kitchen.id for kitchen in user_kitchens]
+    
+    shopping_lists = db.query(models.ShoppingList).filter(
+        models.ShoppingList.kitchen_id.in_(kitchen_ids)
+    ).offset(skip).limit(limit).all()
     return shopping_lists
 
 @router.get("/shopping-lists/{shopping_list_id}", response_model=schemas.ShoppingList)
@@ -87,10 +93,16 @@ def create_shopping_list_item(
 def list_shopping_list_items(
     skip: int = 0,
     limit: int = 100,
-    current_user: dict = Depends(validate_bearer_token),
+    current_user: models.User = Depends(validate_bearer_token),
     db: Session = Depends(get_db)
 ):
-    items = db.query(models.ShoppingListItem).offset(skip).limit(limit).all()
+    # Only return items from user's kitchens
+    user_kitchens = db.query(models.Kitchen).filter(models.Kitchen.owner_id == current_user.id).all()
+    kitchen_ids = [kitchen.id for kitchen in user_kitchens]
+    
+    items = db.query(models.ShoppingListItem).join(models.ShoppingList).filter(
+        models.ShoppingList.kitchen_id.in_(kitchen_ids)
+    ).offset(skip).limit(limit).all()
     return items
 
 @router.get("/shopping-list-items/{item_id}", response_model=schemas.ShoppingListItem)
