@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pydantic import BaseModel, EmailStr, validator
 from typing import List, Optional, Union, Any
 from datetime import datetime, date
@@ -44,7 +45,6 @@ class User(UserBase):
     is_verified: bool
     created_at: datetime
     updated_at: datetime
-    kitchens: List["Kitchen"] = []
     
     class Config:
         from_attributes = True

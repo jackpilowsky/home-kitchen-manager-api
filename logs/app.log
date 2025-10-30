@@ -1,0 +1,7 @@
+2025-10-30 22:10:39 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:10:39 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:10:39 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 8.2%, Memory 11.1%
+2025-10-30 22:10:40 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:57434 - "GET /api/v1/health HTTP/1.1" 200
+2025-10-30 22:10:40 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - GET /api/v1/health - 200 - 0.001s
+2025-10-30 22:11:00 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:17637 - "GET /api/v1/health HTTP/1.1" 200
+2025-10-30 22:11:00 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - GET /api/v1/health - 200 - 0.006s

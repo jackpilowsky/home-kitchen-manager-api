@@ -25,26 +25,28 @@ class DatabaseManager:
         """Setup SQLAlchemy engine with optimized settings for AWS RDS PostgreSQL"""
         
         # Connection arguments optimized for AWS RDS
+        import os
+        ssl_mode = os.getenv('DB_SSL_MODE', 'require')
         connect_args = {
-            "connect_timeout": settings.database.connect_timeout,
-            "sslmode": settings.database.ssl_mode,
-            "application_name": settings.database.application_name,
-            "options": f"-c statement_timeout={settings.database.statement_timeout}ms "
-                      f"-c idle_in_transaction_session_timeout={settings.database.idle_in_transaction_session_timeout}ms"
+            "connect_timeout": settings.connect_timeout,
+            "sslmode": ssl_mode,
+            "application_name": settings.application_name,
+            "options": f"-c statement_timeout={settings.statement_timeout}ms "
+                      f"-c idle_in_transaction_session_timeout={settings.idle_in_transaction_session_timeout}ms"
         }
         
         # Choose pool class based on environment
-        if settings.app.environment == 'production':
+        if settings.environment == 'production':
             poolclass = QueuePool
         else:
             # Use NullPool for development to avoid connection issues
-            poolclass = NullPool if settings.app.debug else QueuePool
+            poolclass = NullPool if settings.debug else QueuePool
         
         # Engine configuration
         engine_kwargs = {
             "poolclass": poolclass,
-            "echo": settings.app.debug and settings.app.log_level == 'DEBUG',
-            "echo_pool": settings.app.debug,
+            "echo": settings.debug and settings.log_level == 'DEBUG',
+            "echo_pool": settings.debug,
             "future": True,  # Use SQLAlchemy 2.0 style
             "connect_args": connect_args,
         }
@@ -52,22 +54,23 @@ class DatabaseManager:
         # Add pool settings only for QueuePool
         if poolclass == QueuePool:
             engine_kwargs.update({
-                "pool_size": settings.database.pool_size,
-                "max_overflow": settings.database.max_overflow,
-                "pool_timeout": settings.database.pool_timeout,
-                "pool_recycle": settings.database.pool_recycle,
-                "pool_pre_ping": settings.database.pool_pre_ping,
+                "pool_size": settings.pool_size,
+                "max_overflow": settings.max_overflow,
+                "pool_timeout": settings.pool_timeout,
+                "pool_recycle": settings.pool_recycle,
+                "pool_pre_ping": settings.pool_pre_ping,
             })
         
         try:
             self.engine = create_engine(
-                settings.database.database_url,
+                settings.database_url,
                 **engine_kwargs
             )
             
             # Test connection
             with self.engine.connect() as conn:
-                conn.execute("SELECT 1")
+                from sqlalchemy import text
+                conn.execute(text("SELECT 1"))
                 logger.info("Database connection established successfully")
             
             # Setup session factory
@@ -92,9 +95,9 @@ class DatabaseManager:
                 cursor = dbapi_connection.cursor()
                 # Set connection-level parameters for better performance
                 cursor.execute("SET timezone = 'UTC'")
-                cursor.execute("SET statement_timeout = %s", (settings.database.statement_timeout,))
+                cursor.execute("SET statement_timeout = %s", (settings.statement_timeout,))
                 cursor.execute("SET idle_in_transaction_session_timeout = %s", 
-                             (settings.database.idle_in_transaction_session_timeout,))
+                             (settings.idle_in_transaction_session_timeout,))
                 cursor.close()
         
         @event.listens_for(Engine, "checkout")
@@ -125,7 +128,8 @@ class DatabaseManager:
             
             with self.engine.connect() as conn:
                 # Test basic connectivity
-                result = conn.execute("SELECT 1 as health_check")
+                from sqlalchemy import text
+                result = conn.execute(text("SELECT 1 as health_check"))
                 result.fetchone()
                 
                 # Get connection pool status
@@ -142,7 +146,7 @@ class DatabaseManager:
                     "status": "healthy",
                     "response_time_ms": round(response_time, 2),
                     "pool_status": pool_status,
-                    "database_url": settings.database.database_url.split('@')[1] if '@' in settings.database.database_url else 'hidden'
+                    "database_url": settings.database_url.split('@')[1] if '@' in settings.database_url else 'hidden'
                 }
                 
         except Exception as e:
