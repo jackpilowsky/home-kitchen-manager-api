@@ -124,3 +124,156 @@ AttributeError: module 'bcrypt' has no attribute '__about__'
 2025-10-30 22:31:58 - api.v1.error_handlers - ERROR - /app/api/v1/error_handlers.py:49 - create_error_response - API Error: DATABASE_ERROR - Unexpected error creating user: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
 2025-10-30 22:31:58 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:37547 - "POST /api/v1/auth/register HTTP/1.1" 500
 2025-10-30 22:31:58 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/register - 500 - 0.036s
+2025-10-30 22:32:18 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.4%, Memory 11.9%
+2025-10-30 22:33:18 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.4%, Memory 11.9%
+2025-10-30 22:33:55 - main - INFO - /app/main.py:40 - lifespan - Home Kitchen Manager API shutting down
+2025-10-30 22:33:55 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:33:55 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:33:55 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 7.5%, Memory 11.2%
+2025-10-30 22:34:01 - main - INFO - /app/main.py:40 - lifespan - Home Kitchen Manager API shutting down
+2025-10-30 22:34:01 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:34:01 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:34:01 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 11.1%, Memory 11.2%
+2025-10-30 22:34:07 - main - INFO - /app/main.py:40 - lifespan - Home Kitchen Manager API shutting down
+2025-10-30 22:34:08 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:34:08 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:34:08 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 8.5%, Memory 11.1%
+2025-10-30 22:34:12 - main - INFO - /app/main.py:40 - lifespan - Home Kitchen Manager API shutting down
+2025-10-30 22:34:13 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:34:13 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:34:13 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 10.2%, Memory 11.1%
+2025-10-30 22:34:24 - main - INFO - /app/main.py:40 - lifespan - Home Kitchen Manager API shutting down
+2025-10-30 22:34:25 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:34:25 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:34:25 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 10.4%, Memory 11.4%
+2025-10-30 22:34:50 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:25921 - "GET /api/v1/health HTTP/1.1" 200
+2025-10-30 22:34:50 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - GET /api/v1/health - 200 - 0.006s
+2025-10-30 22:35:04 - api.v1.database - DEBUG - /app/api/v1/database.py:106 - receive_checkout - Connection checked out from pool
+2025-10-30 22:35:04 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2689 - _connection_begin_impl - BEGIN (implicit)
+2025-10-30 22:35:04 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:35:04 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [generated in 0.00031s] {'username_1': 'testuser1', 'param_1': 1}
+2025-10-30 22:35:04 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.email = %(email_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:35:04 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [generated in 0.00025s] {'email_1': 'test1@example.com', 'param_1': 1}
+2025-10-30 22:35:04 - passlib.handlers.bcrypt - WARNING - /usr/local/lib/python3.11/site-packages/passlib/handlers/bcrypt.py:622 - _load_backend_mixin - (trapped) error reading bcrypt version
+Traceback (most recent call last):
+  File "/usr/local/lib/python3.11/site-packages/passlib/handlers/bcrypt.py", line 620, in _load_backend_mixin
+    version = _bcrypt.__about__.__version__
+              ^^^^^^^^^^^^^^^^^
+AttributeError: module 'bcrypt' has no attribute '__about__'
+2025-10-30 22:35:04 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2692 - _connection_rollback_impl - ROLLBACK
+2025-10-30 22:35:04 - api.v1.database - DEBUG - /app/api/v1/database.py:111 - receive_checkin - Connection returned to pool
+2025-10-30 22:35:04 - api.v1.database - ERROR - /app/api/v1/database.py:198 - get_db - Database session error: Unexpected error creating user: Password hashing failed: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2025-10-30 22:35:04 - api.v1.error_handlers - ERROR - /app/api/v1/error_handlers.py:49 - create_error_response - API Error: DATABASE_ERROR - Unexpected error creating user: Password hashing failed: password cannot be longer than 72 bytes, truncate manually if necessary (e.g. my_password[:72])
+2025-10-30 22:35:04 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:38141 - "POST /api/v1/auth/register HTTP/1.1" 500
+2025-10-30 22:35:04 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/register - 500 - 0.088s
+2025-10-30 22:35:25 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.6%, Memory 12.0%
+2025-10-30 22:35:25 - api.alerts - ERROR - /app/api/v1/monitoring.py:367 - check_alerts - Failed to check alerts: "Attempt to overwrite 'message' in LogRecord"
+2025-10-30 22:35:28 - main - INFO - /app/main.py:40 - lifespan - Home Kitchen Manager API shutting down
+2025-10-30 22:35:29 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:35:29 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:35:29 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 10.2%, Memory 11.8%
+2025-10-30 22:36:29 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.4%, Memory 12.2%
+2025-10-30 22:37:29 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.9%, Memory 13.6%
+2025-10-30 22:38:29 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 4.9%, Memory 14.0%
+2025-10-30 22:38:54 - main - INFO - /app/main.py:40 - lifespan - Home Kitchen Manager API shutting down
+2025-10-30 22:38:56 - logging_config - INFO - /app/logging_config.py:99 - setup_logging - Logging configuration initialized
+2025-10-30 22:38:56 - main - INFO - /app/main.py:32 - lifespan - Home Kitchen Manager API starting up
+2025-10-30 22:38:56 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 10.9%, Memory 14.0%
+2025-10-30 22:39:07 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:35395 - "GET /api/v1/health HTTP/1.1" 200
+2025-10-30 22:39:07 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - GET /api/v1/health - 200 - 0.003s
+2025-10-30 22:39:37 - api.v1.database - DEBUG - /app/api/v1/database.py:106 - receive_checkout - Connection checked out from pool
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2689 - _connection_begin_impl - BEGIN (implicit)
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [generated in 0.00044s] {'username_1': 'testuser1', 'param_1': 1}
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.email = %(email_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [generated in 0.00022s] {'email_1': 'test1@example.com', 'param_1': 1}
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - INSERT INTO users (username, email, hashed_password, first_name, last_name, is_active, is_verified, created_at, updated_at) VALUES (%(username)s, %(email)s, %(hashed_password)s, %(first_name)s, %(last_name)s, %(is_active)s, %(is_verified)s, %(created_at)s, %(updated_at)s) RETURNING users.id
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [generated in 0.00030s] {'username': 'testuser1', 'email': 'test1@example.com', 'hashed_password': '$2b$12$S22NIwBUxzAmiEnSs/KtLOlKQnIMb0/E67fcrQmz9QDwUJV/w2iRO', 'first_name': None, 'last_name': None, 'is_active': True, 'is_verified': False, 'created_at': datetime.datetime(2025, 10, 30, 22, 39, 37, 514624), 'updated_at': datetime.datetime(2025, 10, 30, 22, 39, 37, 514626)}
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2695 - _connection_commit_impl - COMMIT
+2025-10-30 22:39:37 - api.v1.database - DEBUG - /app/api/v1/database.py:111 - receive_checkin - Connection returned to pool
+2025-10-30 22:39:37 - api.v1.database - DEBUG - /app/api/v1/database.py:106 - receive_checkout - Connection checked out from pool
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2689 - _connection_begin_impl - BEGIN (implicit)
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id, users.username, users.email, users.hashed_password, users.first_name, users.last_name, users.is_active, users.is_verified, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [generated in 0.00011s] {'pk_1': 1}
+2025-10-30 22:39:37 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:57347 - "POST /api/v1/auth/register HTTP/1.1" 201
+2025-10-30 22:39:37 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2692 - _connection_rollback_impl - ROLLBACK
+2025-10-30 22:39:37 - api.v1.database - DEBUG - /app/api/v1/database.py:111 - receive_checkin - Connection returned to pool
+2025-10-30 22:39:37 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/register - 201 - 0.311s
+2025-10-30 22:39:49 - api.v1.database - DEBUG - /app/api/v1/database.py:106 - receive_checkout - Connection checked out from pool
+2025-10-30 22:39:49 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2689 - _connection_begin_impl - BEGIN (implicit)
+2025-10-30 22:39:49 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:39:49 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [cached since 12.56s ago] {'username_1': 'testuser2', 'param_1': 1}
+2025-10-30 22:39:49 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.email = %(email_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:39:49 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [cached since 12.56s ago] {'email_1': 'test2@example.com', 'param_1': 1}
+2025-10-30 22:39:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - INSERT INTO users (username, email, hashed_password, first_name, last_name, is_active, is_verified, created_at, updated_at) VALUES (%(username)s, %(email)s, %(hashed_password)s, %(first_name)s, %(last_name)s, %(is_active)s, %(is_verified)s, %(created_at)s, %(updated_at)s) RETURNING users.id
+2025-10-30 22:39:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [cached since 12.55s ago] {'username': 'testuser2', 'email': 'test2@example.com', 'hashed_password': '$2b$12$jFhlOhssTcqt/WdCsVlgN.y6f5GAp5yMxfwftiZpcjiSNv1xISi/G', 'first_name': None, 'last_name': None, 'is_active': True, 'is_verified': False, 'created_at': datetime.datetime(2025, 10, 30, 22, 39, 50, 59566), 'updated_at': datetime.datetime(2025, 10, 30, 22, 39, 50, 59568)}
+2025-10-30 22:39:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2695 - _connection_commit_impl - COMMIT
+2025-10-30 22:39:50 - api.v1.database - DEBUG - /app/api/v1/database.py:111 - receive_checkin - Connection returned to pool
+2025-10-30 22:39:50 - api.v1.database - DEBUG - /app/api/v1/database.py:106 - receive_checkout - Connection checked out from pool
+2025-10-30 22:39:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2689 - _connection_begin_impl - BEGIN (implicit)
+2025-10-30 22:39:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id, users.username, users.email, users.hashed_password, users.first_name, users.last_name, users.is_active, users.is_verified, users.created_at, users.updated_at 
+FROM users 
+WHERE users.id = %(pk_1)s
+2025-10-30 22:39:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [cached since 12.54s ago] {'pk_1': 2}
+2025-10-30 22:39:50 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:26660 - "POST /api/v1/auth/register HTTP/1.1" 201
+2025-10-30 22:39:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2692 - _connection_rollback_impl - ROLLBACK
+2025-10-30 22:39:50 - api.v1.database - DEBUG - /app/api/v1/database.py:111 - receive_checkin - Connection returned to pool
+2025-10-30 22:39:50 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/register - 201 - 0.227s
+2025-10-30 22:39:56 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.6%, Memory 13.8%
+2025-10-30 22:40:02 - api.v1.database - ERROR - /app/api/v1/database.py:198 - get_db - Database session error: [{'type': 'value_error', 'loc': ('body', 'password'), 'msg': 'Value error, Password must be no more than 30 characters long', 'input': 'ThisPasswordIsDefinitelyTooLongAndShouldBeRejectedByValidation123', 'ctx': {'error': ValueError('Password must be no more than 30 characters long')}, 'url': 'https://errors.pydantic.dev/2.5/v/value_error'}]
+2025-10-30 22:40:02 - api.v1.error_handlers - ERROR - /app/api/v1/error_handlers.py:49 - create_error_response - API Error: VALIDATION_ERROR - Validation failed
+2025-10-30 22:40:02 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:61877 - "POST /api/v1/auth/register HTTP/1.1" 422
+2025-10-30 22:40:02 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/register - 422 - 0.012s
+2025-10-30 22:40:16 - api.v1.database - ERROR - /app/api/v1/database.py:198 - get_db - Database session error: [{'type': 'value_error', 'loc': ('body', 'password'), 'msg': 'Value error, Password must be at least 8 characters long', 'input': 'Short1', 'ctx': {'error': ValueError('Password must be at least 8 characters long')}, 'url': 'https://errors.pydantic.dev/2.5/v/value_error'}]
+2025-10-30 22:40:16 - api.v1.error_handlers - ERROR - /app/api/v1/error_handlers.py:49 - create_error_response - API Error: VALIDATION_ERROR - Validation failed
+2025-10-30 22:40:16 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:60850 - "POST /api/v1/auth/register HTTP/1.1" 422
+2025-10-30 22:40:16 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/register - 422 - 0.017s
+2025-10-30 22:40:39 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:20870 - "POST /api/v1/auth/login HTTP/1.1" 404
+2025-10-30 22:40:39 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/login - 404 - 0.005s
+2025-10-30 22:40:53 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:38478 - "GET /docs HTTP/1.1" 200
+2025-10-30 22:40:53 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - GET /docs - 200 - 0.001s
+2025-10-30 22:40:56 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.4%, Memory 13.4%
+2025-10-30 22:40:56 - api.alerts - ERROR - /app/api/v1/monitoring.py:367 - check_alerts - Failed to check alerts: "Attempt to overwrite 'message' in LogRecord"
+2025-10-30 22:41:19 - api.v1.database - DEBUG - /app/api/v1/database.py:106 - receive_checkout - Connection checked out from pool
+2025-10-30 22:41:19 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2689 - _connection_begin_impl - BEGIN (implicit)
+2025-10-30 22:41:19 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:41:19 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [cached since 101.7s ago] {'username_1': 'testuser1', 'param_1': 1}
+2025-10-30 22:41:19 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:33637 - "POST /api/v1/auth/token HTTP/1.1" 200
+2025-10-30 22:41:19 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2692 - _connection_rollback_impl - ROLLBACK
+2025-10-30 22:41:19 - api.v1.database - DEBUG - /app/api/v1/database.py:111 - receive_checkin - Connection returned to pool
+2025-10-30 22:41:19 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/token - 200 - 0.228s
+2025-10-30 22:41:50 - api.v1.database - DEBUG - /app/api/v1/database.py:106 - receive_checkout - Connection checked out from pool
+2025-10-30 22:41:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2689 - _connection_begin_impl - BEGIN (implicit)
+2025-10-30 22:41:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - SELECT users.id AS users_id, users.username AS users_username, users.email AS users_email, users.hashed_password AS users_hashed_password, users.first_name AS users_first_name, users.last_name AS users_last_name, users.is_active AS users_is_active, users.is_verified AS users_is_verified, users.created_at AS users_created_at, users.updated_at AS users_updated_at 
+FROM users 
+WHERE users.username = %(username_1)s 
+ LIMIT %(param_1)s
+2025-10-30 22:41:50 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:1848 - _execute_context - [cached since 133.7s ago] {'username_1': 'testuser2', 'param_1': 1}
+2025-10-30 22:41:51 - uvicorn.access - INFO - /usr/local/lib/python3.11/site-packages/uvicorn/protocols/http/httptools_impl.py:496 - send - 167.82.16.223:27037 - "POST /api/v1/auth/token HTTP/1.1" 200
+2025-10-30 22:41:51 - sqlalchemy.engine.Engine - INFO - /usr/local/lib/python3.11/site-packages/sqlalchemy/engine/base.py:2692 - _connection_rollback_impl - ROLLBACK
+2025-10-30 22:41:51 - api.v1.database - DEBUG - /app/api/v1/database.py:111 - receive_checkin - Connection returned to pool
+2025-10-30 22:41:51 - api.monitoring - INFO - /app/api/v1/monitoring.py:299 - __call__ - POST /api/v1/auth/token - 200 - 0.219s
+2025-10-30 22:41:56 - api.v1.monitoring - DEBUG - /app/api/v1/monitoring.py:124 - record_system_metrics - System metrics recorded: CPU 0.5%, Memory 13.0%

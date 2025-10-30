@@ -22,17 +22,48 @@ from api.v1.exceptions import (
 )
 
 # --- Auth setup ---
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+pwd_context = CryptContext(
+    schemes=["bcrypt"], 
+    deprecated="auto",
+    bcrypt__rounds=12  # Secure but not too slow
+)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 
 # --- Auth helpers ---
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a plain password against its hash"""
-    return pwd_context.verify(plain_password, hashed_password)
+    try:
+        # Handle the same encoding logic as hashing
+        password_bytes = plain_password.encode('utf-8')
+        if len(password_bytes) > 72:
+            plain_password = password_bytes[:72].decode('utf-8', errors='ignore')
+        
+        return pwd_context.verify(plain_password, hashed_password)
+    except Exception:
+        return False
 
 def get_password_hash(password: str) -> str:
-    """Hash a password"""
-    return pwd_context.hash(password)
+    """Hash a password with proper encoding handling"""
+    try:
+        # Ensure password is within bcrypt's 72-byte limit
+        password_bytes = password.encode('utf-8')
+        if len(password_bytes) > 72:
+            # Truncate to 72 bytes while preserving UTF-8 encoding
+            truncated_bytes = password_bytes[:72]
+            # Find the last complete UTF-8 character
+            while len(truncated_bytes) > 0:
+                try:
+                    password = truncated_bytes.decode('utf-8')
+                    break
+                except UnicodeDecodeError:
+                    truncated_bytes = truncated_bytes[:-1]
+            else:
+                # Fallback if we can't decode anything
+                password = password[:60]  # Conservative fallback
+        
+        return pwd_context.hash(password)
+    except Exception as e:
+        raise ValueError(f"Password hashing failed: {str(e)}")
 
 def authenticate_user(username: str, password: str, db: Session) -> Optional[User]:
     """Authenticate a user by username and password"""
