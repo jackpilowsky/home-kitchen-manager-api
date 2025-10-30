@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision: str = '034f6c9ab1e6'
-down_revision: Union[str, Sequence[str], None] = 'c38c43c79949'
+down_revision: Union[str, Sequence[str], None] = '42d9e070349b'
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
@@ -30,18 +30,11 @@ def upgrade() -> None:
         ['kitchen_id', 'created_at']
     )
     
-    # Shopping list items - frequently queried by list and purchase status
+    # Shopping list items - frequently queried by list
     op.create_index(
-        'idx_shopping_list_items_list_purchased', 
+        'idx_shopping_list_items_list', 
         'shopping_list_items', 
-        ['shopping_list_id', 'is_purchased']
-    )
-    
-    # Shopping list items - category filtering
-    op.create_index(
-        'idx_shopping_list_items_category', 
-        'shopping_list_items', 
-        ['category']
+        ['shopping_list_id']
     )
     
     # Pantry items - kitchen and name for search
@@ -103,11 +96,11 @@ def upgrade() -> None:
     # Full-text search indexes for PostgreSQL
     # These use PostgreSQL's GIN indexes for better text search performance
     
-    # Shopping list items - full text search on name and description
+    # Shopping list items - full text search on name only
     op.execute("""
         CREATE INDEX idx_shopping_list_items_fulltext 
         ON shopping_list_items 
-        USING gin(to_tsvector('english', coalesce(name, '') || ' ' || coalesce(description, '') || ' ' || coalesce(notes, '')))
+        USING gin(to_tsvector('english', coalesce(name, '')))
     """)
     
     # Pantry items - full text search
@@ -145,8 +138,7 @@ def downgrade() -> None:
     
     # Drop composite indexes
     op.drop_index('idx_shopping_lists_kitchen_created', table_name='shopping_lists')
-    op.drop_index('idx_shopping_list_items_list_purchased', table_name='shopping_list_items')
-    op.drop_index('idx_shopping_list_items_category', table_name='shopping_list_items')
+    op.drop_index('idx_shopping_list_items_list', table_name='shopping_list_items')
     
     op.drop_index('idx_pantry_items_kitchen_name', table_name='pantry_items')
     op.drop_index('idx_pantry_items_upc', table_name='pantry_items')
