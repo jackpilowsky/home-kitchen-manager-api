@@ -16,11 +16,13 @@ class User(Base):
     last_name = Column(String(100), nullable=True)
     is_active = Column(Boolean, default=True)
     is_verified = Column(Boolean, default=False)
+    selected_kitchen_id = Column(Integer, ForeignKey("kitchens.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    kitchens = relationship("Kitchen", back_populates="owner")
+    kitchens = relationship("Kitchen", back_populates="owner", foreign_keys="Kitchen.owner_id")
+    selected_kitchen = relationship("Kitchen", foreign_keys=[selected_kitchen_id], post_update=True)
 
 class Kitchen(Base):
     __tablename__ = "kitchens"
@@ -33,7 +35,7 @@ class Kitchen(Base):
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
     
     # Relationships
-    owner = relationship("User", back_populates="kitchens")
+    owner = relationship("User", back_populates="kitchens", foreign_keys=[owner_id])
     shopping_lists = relationship("ShoppingList", back_populates="kitchen")
     pantry_items = relationship("PantryItem", back_populates="kitchen")
     refrigerator_items = relationship("RefrigeratorItem", back_populates="kitchen")

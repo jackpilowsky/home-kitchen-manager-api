@@ -8,7 +8,7 @@ from typing import Optional
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from config import SECRET_KEY, ALGORITHM
-from api.v1.models import User
+from api.v1.models import User, Kitchen
 from api.v1.database import get_db
 from api.v1.exceptions import (
     InvalidCredentialsException,
@@ -84,7 +84,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def create_user(username: str, email: str, password: str, db: Session, **kwargs) -> User:
-    """Create a new user"""
+    """Create a new user with default kitchen"""
     try:
         hashed_password = get_password_hash(password)
         user = User(
@@ -94,6 +94,20 @@ def create_user(username: str, email: str, password: str, db: Session, **kwargs)
             **kwargs
         )
         db.add(user)
+        db.flush()  # Flush to get user.id without committing
+        
+        # Create default kitchen for the user
+        default_kitchen = Kitchen(
+            name=f"{username}'s Kitchen",
+            description="Default kitchen",
+            owner_id=user.id
+        )
+        db.add(default_kitchen)
+        db.flush()  # Flush to get kitchen.id
+        
+        # Set the selected kitchen to the newly created kitchen
+        user.selected_kitchen_id = default_kitchen.id
+        
         db.commit()
         db.refresh(user)
         return user

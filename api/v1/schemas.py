@@ -48,6 +48,7 @@ class User(UserBase):
     id: int
     is_active: bool
     is_verified: bool
+    selected_kitchen_id: Optional[int] = None
     created_at: datetime
     updated_at: datetime
     
