@@ -109,7 +109,7 @@ app = FastAPI(
     },
     servers=[
         {
-            "url": "http://localhost:8000",
+            "url": "http://localhost:8001",
             "description": "Development server"
         },
         {
